@@ -1,0 +1,199 @@
+services:
+  - type: web
+    name: main-app
+    env: php
+    plan: starter
+    rootDir: .
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      npm ci || npm install
+      npm run build
+      php artisan ziggy:generate || true
+      php artisan storage:link || true
+    startCommand: php-fpm -D && nginx -g 'daemon off;'
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://REPLACE_WITH_DOMAIN
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase: main-db
+        name: host
+      - key: DB_PORT
+        fromDatabase: main-db
+        name: port
+      - key: DB_DATABASE
+        fromDatabase: main-db
+        name: database
+      - key: DB_USERNAME
+        fromDatabase: main-db
+        name: user
+      - key: DB_PASSWORD
+        fromDatabase: main-db
+        name: password
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: CACHE_DRIVER
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: REDIS_URL
+        fromService: main-redis
+        name: connectionString
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        value: us-east-1
+      - key: AWS_BUCKET
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+    databases:
+      - name: main-db
+    services:
+      - name: main-redis
+        type: redis
+        plan: starter
+
+  - type: worker
+    name: main-worker
+    env: php
+    plan: starter
+    rootDir: .
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      php artisan config:clear
+    startCommand: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://REPLACE_WITH_DOMAIN
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase: main-db
+        name: host
+      - key: DB_PORT
+        fromDatabase: main-db
+        name: port
+      - key: DB_DATABASE
+        fromDatabase: main-db
+        name: database
+      - key: DB_USERNAME
+        fromDatabase: main-db
+        name: user
+      - key: DB_PASSWORD
+        fromDatabase: main-db
+        name: password
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: CACHE_DRIVER
+        value: redis
+      - key: SESSION_DRIVER
+        value: redis
+      - key: REDIS_URL
+        fromService: main-redis
+        name: connectionString
+
+  - type: cron
+    name: main-scheduler
+    env: php
+    rootDir: .
+    schedule: "* * * * *"
+    command: php artisan schedule:run
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://REPLACE_WITH_DOMAIN
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase: main-db
+        name: host
+      - key: DB_PORT
+        fromDatabase: main-db
+        name: port
+      - key: DB_DATABASE
+        fromDatabase: main-db
+        name: database
+      - key: DB_USERNAME
+        fromDatabase: main-db
+        name: user
+      - key: DB_PASSWORD
+        fromDatabase: main-db
+        name: password
+
+  - type: web
+    name: pdf-generator
+    env: php
+    plan: starter
+    rootDir: pdf-generator
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      npm ci || npm install
+      npm run build || true
+      php artisan storage:link || true
+    startCommand: php-fpm -D && nginx -g 'daemon off;'
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://REPLACE_WITH_PDF_DOMAIN
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase: pdf-db
+        name: host
+      - key: DB_PORT
+        fromDatabase: pdf-db
+        name: port
+      - key: DB_DATABASE
+        fromDatabase: pdf-db
+        name: database
+      - key: DB_USERNAME
+        fromDatabase: pdf-db
+        name: user
+      - key: DB_PASSWORD
+        fromDatabase: pdf-db
+        name: password
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        value: us-east-1
+      - key: AWS_BUCKET
+        sync: false
+    databases:
+      - name: pdf-db 

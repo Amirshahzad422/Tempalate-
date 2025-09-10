@@ -1,0 +1,40 @@
+# Laravel
+/vendor/
+/node_modules/
+.env
+.env.*
+.phpunit.result.cache
+.phpunit.cache/
+/storage/*.key
+/storage/*.log
+/storage/*.sqlite
+/storage/app/public/*
+/public/storage
+/bootstrap/cache/*.php
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+storage/logs/*
+
+# Vite
+/public/build
+/public/hot
+
+# TypeScript
+*.tsbuildinfo
+
+# Subapp: pdf-generator
+/pdf-generator/vendor/
+/pdf-generator/node_modules/
+/pdf-generator/.env
+/pdf-generator/storage/*.sqlite
+/pdf-generator/storage/app/public/*
+/pdf-generator/public/build
+/pdf-generator/public/hot
