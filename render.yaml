@@ -1,16 +1,10 @@
 services:
   - type: web
     name: main-app
-    env: php
+    env: docker
     plan: starter
     rootDir: .
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      npm ci || npm install
-      npm run build
-      php artisan ziggy:generate || true
-      php artisan storage:link || true
-    startCommand: php-fpm -D && nginx -g 'daemon off;'
+    dockerfilePath: ./Dockerfile
     autoDeploy: true
     healthCheckPath: /
     envVars:
@@ -58,24 +52,20 @@ services:
         value: us-east-1
       - key: AWS_BUCKET
         sync: false
-      - key: LOG_LEVEL
-        value: info
     databases:
       - name: main-db
     services:
       - name: main-redis
         type: redis
         plan: starter
+    postDeployCommand: php artisan migrate --force
 
   - type: worker
     name: main-worker
-    env: php
+    env: docker
     plan: starter
     rootDir: .
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan config:clear
-    startCommand: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    dockerfilePath: ./Dockerfile
     autoDeploy: true
     envVars:
       - key: APP_ENV
@@ -112,11 +102,13 @@ services:
       - key: REDIS_URL
         fromService: main-redis
         name: connectionString
+    startCommand: php artisan queue:work --sleep=3 --tries=3 --timeout=90
 
   - type: cron
     name: main-scheduler
-    env: php
+    env: docker
     rootDir: .
+    dockerfilePath: ./Dockerfile
     schedule: "* * * * *"
     command: php artisan schedule:run
     envVars:
@@ -148,15 +140,10 @@ services:
 
   - type: web
     name: pdf-generator
-    env: php
+    env: docker
     plan: starter
     rootDir: pdf-generator
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      npm ci || npm install
-      npm run build || true
-      php artisan storage:link || true
-    startCommand: php-fpm -D && nginx -g 'daemon off;'
+    dockerfilePath: ./pdf-generator/Dockerfile
     autoDeploy: true
     healthCheckPath: /
     envVars:
@@ -196,4 +183,5 @@ services:
       - key: AWS_BUCKET
         sync: false
     databases:
-      - name: pdf-db 
+      - name: pdf-db
+    postDeployCommand: php artisan migrate --force 
