@@ -33,14 +33,17 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-progress --prefer-dist --optimize-autoloader
 
-# -------- Node build stage --------
-FROM node:20-alpine AS node_stage
+# -------- Node build stage (Node 18 LTS) --------
+FROM node:18-alpine AS node_stage
 WORKDIR /app
+ENV npm_config_legacy_peer_deps=true
 COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --prefer-offline --legacy-peer-deps; fi
+RUN npm install --no-audit --prefer-offline --legacy-peer-deps
 COPY resources ./resources
 COPY vite.config.* ./
 COPY tsconfig.json* ./
+COPY postcss.config.* ./
+COPY tailwind.config.* ./
 RUN npm run build || (echo "No front-end build needed" && true)
 
 # -------- Final stage --------
