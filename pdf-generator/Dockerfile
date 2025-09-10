@@ -14,7 +14,7 @@ RUN composer install --no-dev --no-scripts --no-progress --prefer-dist --optimiz
 FROM node:20-alpine AS node_stage
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm i; fi
+RUN if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --prefer-offline --legacy-peer-deps; fi
 COPY resources ./resources
 COPY vite.config.* ./
 RUN npm run build || true

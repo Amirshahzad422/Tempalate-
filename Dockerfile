@@ -36,8 +36,8 @@ RUN composer install --no-dev --no-scripts --no-progress --prefer-dist --optimiz
 # -------- Node build stage --------
 FROM node:20-alpine AS node_stage
 WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN if [ -f package-lock.json ]; then npm ci; elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; else npm i; fi
+COPY package.json package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --prefer-offline --legacy-peer-deps; fi
 COPY resources ./resources
 COPY vite.config.* ./
 COPY tsconfig.json* ./
