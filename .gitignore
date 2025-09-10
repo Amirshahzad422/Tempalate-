@@ -30,6 +30,9 @@ storage/logs/*
 # TypeScript
 *.tsbuildinfo
 
+# Static data not needed in repo
+/public/data/
+
 # Subapp: pdf-generator
 /pdf-generator/vendor/
 /pdf-generator/node_modules/
